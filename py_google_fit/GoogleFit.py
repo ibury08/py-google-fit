@@ -30,29 +30,27 @@ class GoogleFit(object):
 
     def __init__(self,
                  client_id: str,
-                 client_secret: str,
-                 auth_scopes: List[str] = _AUTH_SCOPES,
-                 credentials_file: str = '.google_fit_credentials'):
+                 client_secret: str):
         """
 
         :param client_id: Your google client id
         :param client_secret: Your google client secret
-        :param auth_scopes: [optional] google auth scopes: https://developers.google.com/identity/protocols/googlescopes#fitnessv1
-        :param credentials_file: [optional] path to credentials file
         """
         self._client_id = client_id
         self._client_secret = client_secret
-        self._credentials_file = credentials_file
-        self._auth_scopes = auth_scopes
         self._service = None
 
-    def authenticate(self):
+    def authenticate(self,
+                     auth_scopes: List[str] = _AUTH_SCOPES,
+                     credentials_file: str = '.google_fit_credentials'):
         """
         Authenticate and give access to google auth scopes. If no valid credentials file is found, a browser will open
         requesting access.
+        :param auth_scopes: [optional] google auth scopes: https://developers.google.com/identity/protocols/googlescopes#fitnessv1
+        :param credentials_file: [optional] path to credentials file
         """
-        flow = OAuth2WebServerFlow(self._client_id, self._client_secret, self._auth_scopes)
-        storage = Storage(self._credentials_file)
+        flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
+        storage = Storage(credentials_file)
         credentials = storage.get()
 
         if credentials is None or credentials.invalid:
@@ -96,7 +94,7 @@ class GoogleFit(object):
         response = self._execute_aggregate_request(data_type, begin, end)
         return getattr(self, self._AGGREGATE_FUNCTIONS[data_type])(response)
 
-    def average_today(self, data_type: GFitDataType):
+    def average_today(self, data_type: GFitDataType) -> float:
         """
         :param data_type: A data type from GFitDataType
         :return: the average for the specified datatype for today up to now
@@ -105,7 +103,7 @@ class GoogleFit(object):
         end_today = begin_today + timedelta(days=1)
         return self._avg(data_type, begin_today, end_today)
 
-    def average_for_date(self, data_type: GFitDataType, dt: datetime):
+    def average_for_date(self, data_type: GFitDataType, dt: datetime) -> float:
         """
         This function will calculate the boundaries for the given date for you
         :param dt: A specific datetime
@@ -116,7 +114,7 @@ class GoogleFit(object):
         end = begin + timedelta(days=1)
         return self._avg(data_type, begin, end)
 
-    def rolling_daily_average(self, data_type: GFitDataType, n: int = 7):
+    def rolling_daily_average(self, data_type: GFitDataType, n: int = 7) -> float:
         """
         Calculate the average over the last n days, excluding today
         :param data_type: A data type from GFitDataType
@@ -131,7 +129,7 @@ class GoogleFit(object):
         else:
             return avg
 
-    def average_for_n_days_ago(self, data_type: GFitDataType, n=1):
+    def average_for_n_days_ago(self, data_type: GFitDataType, n=1) -> float:
         """
         Wrapper around `average_for_date`. This will calculate the date for you, given a number of days to go back.
         Easy function to compare the steps for a specific day in the week.
