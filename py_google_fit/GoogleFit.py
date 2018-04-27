@@ -10,8 +10,8 @@ from enum import Enum
 
 
 class GFitDataType(Enum):
-    WEIGHT = 'com.google.weight'
-    STEPS = 'com.google.step_count.delta'
+    WEIGHT = ('com.google.weight', float, 'fpVal')
+    STEPS = ('com.google.step_count.delta', int, 'intVal')
 
 
 class GoogleFit(object):
@@ -22,11 +22,6 @@ class GoogleFit(object):
     _AUTH_SCOPES = ['https://www.googleapis.com/auth/fitness.body.read',
                     'https://www.googleapis.com/auth/fitness.activity.read',
                     'https://www.googleapis.com/auth/fitness.nutrition.read']
-
-    _AGGREGATE_FUNCTIONS = {
-        GFitDataType.STEPS: '_count_total_steps',
-        GFitDataType.WEIGHT: '_average_weight',
-    }
 
     def __init__(self,
                  client_id: str,
@@ -71,28 +66,27 @@ class GoogleFit(object):
         return self._service.users().dataset().aggregate(userId='me', body=body).execute()
 
     @staticmethod
-    def _count_total_steps(steps_response):
-        cum = 0
-        points = steps_response['bucket'][0]['dataset'][0]['point']
-        if len(points) == 0:
-            return 'no step data found'
-        for _ in points:
-            cum = cum + int(_['value'][0]['intVal'])
-        return cum
+    def _extract_points(resp: dict):
+        return resp['bucket'][0]['dataset'][0]['point']
 
     @staticmethod
-    def _average_weight(weight_response):
+    def _count_total(data_type: GFitDataType, resp: dict):
         cum = 0
-        points = weight_response['bucket'][0]['dataset'][0]['point']
-        if len(points) == 0:
-            return 'no weight data found'
-        for _ in points:
-            cum = cum + int(_['value'][0]['fpVal'])
-        return cum / len(points)
+        points = GoogleFit._extract_points(resp)
 
-    def _avg(self, data_type, begin, end):
+        if len(points) == 0:
+            return 'no data found'
+        for _ in points:
+            cum = cum + data_type.value[1](_['value'][0][data_type.value[2]])
+
+        if data_type == GFitDataType.WEIGHT:
+            return cum / len(points)
+        else:
+            return cum
+
+    def _avg_for_response(self, data_type, begin, end):
         response = self._execute_aggregate_request(data_type, begin, end)
-        return getattr(self, self._AGGREGATE_FUNCTIONS[data_type])(response)
+        return self._count_total(data_type, response)
 
     def average_today(self, data_type: GFitDataType) -> float:
         """
@@ -101,7 +95,7 @@ class GoogleFit(object):
         """
         begin_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         end_today = begin_today + timedelta(days=1)
-        return self._avg(data_type, begin_today, end_today)
+        return self._avg_for_response(data_type, begin_today, end_today)
 
     def average_for_date(self, data_type: GFitDataType, dt: datetime) -> float:
         """
@@ -112,7 +106,7 @@ class GoogleFit(object):
         """
         begin = dt.replace(hour=0, minute=0, second=0, microsecond=0)
         end = begin + timedelta(days=1)
-        return self._avg(data_type, begin, end)
+        return self._avg_for_response(data_type, begin, end)
 
     def rolling_daily_average(self, data_type: GFitDataType, n: int = 7) -> float:
         """
@@ -123,8 +117,8 @@ class GoogleFit(object):
         """
         begin_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         begin_period = begin_today - timedelta(days=n)
-        avg = self._avg(data_type, begin_period, begin_today)
-        if data_type == self.STEPS:
+        avg = self._avg_for_response(data_type, begin_period, begin_today)
+        if data_type == GFitDataType.STEPS:
             return avg / n
         else:
             return avg
