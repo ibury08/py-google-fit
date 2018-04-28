@@ -54,7 +54,7 @@ class GoogleFit(object):
         http = credentials.authorize(http)
         self._service = build('fitness', 'v1', http=http)
 
-    def _execute_aggregate_request(self, data_type, start_date: datetime, end_date: datetime):
+    def _execute_aggregate_request(self, data_type: str, start_date: datetime, end_date: datetime):
         def to_epoch(dt: datetime) -> int:
             return int(dt.timestamp()) * 1000
 
@@ -85,7 +85,7 @@ class GoogleFit(object):
             return cum
 
     def _avg_for_response(self, data_type, begin, end):
-        response = self._execute_aggregate_request(data_type, begin, end)
+        response = self._execute_aggregate_request(data_type.value[0], begin, end)
         return self._count_total(data_type, response)
 
     def average_today(self, data_type: GFitDataType) -> float:
