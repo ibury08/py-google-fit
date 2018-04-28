@@ -1,12 +1,12 @@
 # py_google_fit
 
-A convenience package for accessing your Google Fit data. It wraps the google python into a few function to easy access your data. This library is witting with read-only intention in mind. There are no helper functions to write to your Google Fit data.
+A convenience package for accessing your Google Fit data. It wraps the google python into a few functions to easily access your data. This library is written with read-only intention in mind. There are no helper functions to write to your Google Fit data.
 
 ## Getting started
 Clone this repo and install it into your python environment
 
 ```bash
-git clone ...
+git clone https://github.com/timvancann/py-google-fit.git
 cd py-google-fit && python setup.py install
 ```
 
