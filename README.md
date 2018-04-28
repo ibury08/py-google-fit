@@ -27,6 +27,8 @@ By default it will request read access to three [google fit scopes](https://deve
 If you haven't ran this function before. A browser will open asking you to give access.
 
 ## Getting your data
+Currently supported data is `steps` and `weight`. Feel free request more or create a PR.
+
 To get your stepcount for today up till now:
 
 ```python
