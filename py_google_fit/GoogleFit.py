@@ -12,7 +12,8 @@ from enum import Enum
 class GFitDataType(Enum):
     WEIGHT = ('com.google.weight', float, 'fpVal')
     STEPS = ('com.google.step_count.delta', int, 'intVal')
-
+    HEIGHT = ('com.google.height',float,'fpVal')        
+    DISTANCE = ('com.google.distance.delta',float, 'fpVal')
 
 class GoogleFit(object):
     """
@@ -21,7 +22,7 @@ class GoogleFit(object):
 
     _AUTH_SCOPES = ['https://www.googleapis.com/auth/fitness.body.read',
                     'https://www.googleapis.com/auth/fitness.activity.read',
-                    'https://www.googleapis.com/auth/fitness.nutrition.read']
+                    'https://www.googleapis.com/auth/fitness.location.read']
 
     def __init__(self,
                  client_id: str,
