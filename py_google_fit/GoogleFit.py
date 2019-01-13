@@ -12,7 +12,8 @@ from enum import Enum
 class GFitDataType(Enum):
     WEIGHT = ('com.google.weight', float, 'fpVal')
     STEPS = ('com.google.step_count.delta', int, 'intVal')
-
+    HEIGHT = ('com.google.height',float,'fpVal')        
+    DISTANCE = ('com.google.distance.delta',float, 'fpVal')
 
 class GoogleFit(object):
     """
@@ -21,7 +22,7 @@ class GoogleFit(object):
 
     _AUTH_SCOPES = ['https://www.googleapis.com/auth/fitness.body.read',
                     'https://www.googleapis.com/auth/fitness.activity.read',
-                    'https://www.googleapis.com/auth/fitness.nutrition.read']
+                    'https://www.googleapis.com/auth/fitness.location.read']
 
     def __init__(self,
                  client_id: str,
@@ -53,6 +54,7 @@ class GoogleFit(object):
         http = httplib2.Http()
         http = credentials.authorize(http)
         self._service = build('fitness', 'v1', http=http)
+
 
     def _execute_aggregate_request(self, data_type: str, start_date: datetime, end_date: datetime):
         def to_epoch(dt: datetime) -> int:
@@ -87,6 +89,26 @@ class GoogleFit(object):
     def _avg_for_response(self, data_type, begin, end):
         response = self._execute_aggregate_request(data_type.value[0], begin, end)
         return self._count_total(data_type, response)
+
+    def average_by_hour_n_days_ago(self,data_type: GFitDataType,n=0,k=0) -> float:
+        """
+        Returns a dictionary of hourly datetimes as keys, with data_type values as 
+        values.
+        param n: days prior to today to start look back.
+        param k: days prior to today for right-bound of look-back window.
+        """
+        begin = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=n)
+        end = datetime.now().replace(minute=0,second=0, microsecond=0) - timedelta(days=k)
+        delta_hours = int((end - begin).seconds / 3600)
+        data_values = {}
+        for i in range(delta_hours):
+            begin_time = begin.replace(hour=i)
+            end_time = begin_time+timedelta(seconds=3600)
+            data_values[begin_time] = self._avg_for_response(data_type, begin_time, end_time)
+        return data_values
+
+
+        
 
     def average_today(self, data_type: GFitDataType) -> float:
         """
