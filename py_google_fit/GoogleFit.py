@@ -1,4 +1,5 @@
-from datetime import timedelta, datetime
+import datetime
+import time
 from typing import List
 
 import httplib2
@@ -97,17 +98,43 @@ class GoogleFit(object):
         param n: days prior to today to start look back.
         param k: days prior to today for right-bound of look-back window.
         """
-        begin = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=n)
-        end = datetime.now().replace(minute=0,second=0, microsecond=0) - timedelta(days=k)
+        begin = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=n)
+        end = datetime.datetime.now().replace(minute=0,second=0, microsecond=0) - datetime.timedelta(days=k)
         delta_hours = int((end - begin).seconds / 3600)
         data_values = {}
         for i in range(delta_hours):
             begin_time = begin.replace(hour=i)
-            end_time = begin_time+timedelta(seconds=3600)
-            data_values[begin_time] = self._avg_for_response(data_type, begin_time, end_time)
-        return data_values
+            end_time = begin_time+datetime.timedelta(seconds=3600)
+            d = self._avg_for_response(data_type, begin_time, end_time)
+            try:
+                round(float(d),3)
+            except:
+                d = 0
+            finally:
+                data_values[begin_time.strftime('%Y-%m-%d %H:%M:%S')] = d
+        #return data_values
+        return self.build_query(data_type, data_values)
 
+    def build_query(self, data_type: GFitDataType, data):
+        query_base = 'insert into activity (user,period_earliest,activity_type,period,value) values '
+        for i in data.keys():
+            period_earliest = "'{}'".format(i)
+            activity_type = "'{}'".format(data_type).lower().split('.')[1]
+            period = "'hour'"
+            value = "'{}'".format(data[i])
+            user="'1'"
+            query_base += '('+','.join([user,period_earliest,activity_type,period,value])
+            query_base += '),'
+        query_base = query_base[:-1]
+        try:
+            #TO DO: Store separately and read in AWS RDS credentials
+            with conn.cursor() as cursor:
+                cursor.execute(query_base)
+                conn.commit()
+        finally:
+            conn.close()
 
+        return (query_base)
         
 
     def average_today(self, data_type: GFitDataType) -> float:
@@ -115,8 +142,8 @@ class GoogleFit(object):
         :param data_type: A data type from GFitDataType
         :return: the average for the specified datatype for today up to now
         """
-        begin_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        end_today = begin_today + timedelta(days=1)
+        begin_today = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        end_today = begin_today +datetime.timedelta(days=1)
         return self._avg_for_response(data_type, begin_today, end_today)
 
     def average_for_date(self, data_type: GFitDataType, dt: datetime) -> float:
@@ -127,7 +154,7 @@ class GoogleFit(object):
         :return: the average for the specified datatype for the given date
         """
         begin = dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = begin + timedelta(days=1)
+        end = begin + datetime.timedelta(days=1)
         return self._avg_for_response(data_type, begin, end)
 
     def rolling_daily_average(self, data_type: GFitDataType, n: int = 7) -> float:
@@ -137,8 +164,8 @@ class GoogleFit(object):
         :param n: The number of days to go back
         :return: The rolling average for the specified datatype
         """
-        begin_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        begin_period = begin_today - timedelta(days=n)
+        begin_today = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        begin_period = begin_today - datetime.timedelta(days=n)
         avg = self._avg_for_response(data_type, begin_period, begin_today)
         if data_type == GFitDataType.STEPS:
             return avg / n
@@ -153,5 +180,5 @@ class GoogleFit(object):
         :param n: The number of days to go back
         :return: the average for the specified datatype
         """
-        n_days_ago = datetime.now() - timedelta(days=n)
+        n_days_ago = datetime.datetime.now() - datetime.timedelta(days=n)
         return self.average_for_date(data_type, n_days_ago)
