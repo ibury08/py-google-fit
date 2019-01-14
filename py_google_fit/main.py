@@ -1,5 +1,5 @@
 import sys
-import config
+#import config
 try:
 	sys.path.insert(0,os.environ.API_CONFIG['local_path'])
 except:

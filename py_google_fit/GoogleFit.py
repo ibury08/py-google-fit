@@ -2,7 +2,7 @@ import datetime
 import time
 from typing import List
 import pymysql
-import config
+#import config
 import httplib2
 from apiclient.discovery import build
 from oauth2client import tools
