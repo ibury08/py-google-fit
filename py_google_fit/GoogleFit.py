@@ -137,11 +137,11 @@ class GoogleFit(object):
                 #passwd=config.DATABASE_CONFIG['password'],
                 #db=config.DATABASE_CONFIG['dbname'],
                 #port=config.DATABASE_CONFIG['port'])
-            conn = pymysql.connect(host=os.environ.DATABASE_CONFIG['host'],
-                user=os.environ.DATABASE_CONFIG['user'],
-                passwd=os.environ.DATABASE_CONFIG['password'],
-                db=os.environ.DATABASE_CONFIG['dbname'],
-                port=os.environ.DATABASE_CONFIG['port'])
+            conn = pymysql.connect(host=os.environ['host'],
+                user=os.environ['user'],
+                passwd=os.environ.['password'],
+                db=os.environ.['dbname'],
+                port=os.environ.['port'])
             with conn.cursor() as cursor:
                 sql="{}".format(query_base)
                 #print(sql)
