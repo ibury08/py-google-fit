@@ -1,7 +1,8 @@
 import datetime
 import time
 from typing import List
-
+import pymysql
+import config
 import httplib2
 from apiclient.discovery import build
 from oauth2client import tools
@@ -119,22 +120,35 @@ class GoogleFit(object):
         query_base = 'insert into activity (user,period_earliest,activity_type,period,value) values '
         for i in data.keys():
             period_earliest = "'{}'".format(i)
-            activity_type = "'{}'".format(data_type).lower().split('.')[1]
+            activity_type = "'{}'".format(str(data_type).lo*wer().split('.')[1])
             period = "'hour'"
             value = "'{}'".format(data[i])
             user="'1'"
             query_base += '('+','.join([user,period_earliest,activity_type,period,value])
             query_base += '),'
         query_base = query_base[:-1]
+       
         try:
-            #TO DO: Store separately and read in AWS RDS credentials
+
+            conn = pymysql.connect(host=config.DATABASE_CONFIG['host'],
+                user=config.DATABASE_CONFIG['user'],
+                passwd=config.DATABASE_CONFIG['password'],
+                db=config.DATABASE_CONFIG['dbname'],
+                port=config.DATABASE_CONFIG['port'])
             with conn.cursor() as cursor:
-                cursor.execute(query_base)
+                sql="{}".format(query_base)
+                #print(sql)
+                cursor.execute(sql)
                 conn.commit()
+                print('Success! Data added.')
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print (message)
         finally:
             conn.close()
 
-        return (query_base)
+        
         
 
     def average_today(self, data_type: GFitDataType) -> float:
