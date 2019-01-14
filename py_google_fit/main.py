@@ -10,4 +10,4 @@ client_id = config.API_CONFIG['client_id']
 client_secret = config.API_CONFIG['client_secret']
 fit = GoogleFit(client_id, client_secret)
 fit.authenticate()
-fit.average_by_hour_n_days_ago(GFitDataType.STEPS,0,0)
+fit.average_by_hour_n_days_ago(GFitDataType.STEPS,3,0)

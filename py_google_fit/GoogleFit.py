@@ -101,10 +101,12 @@ class GoogleFit(object):
         """
         begin = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=n)
         end = datetime.datetime.now().replace(minute=0,second=0, microsecond=0) - datetime.timedelta(days=k)
-        delta_hours = int((end - begin).seconds / 3600)
+        delta_hours = int(((end - begin).seconds / 3600)+(end-begin).days * 24)
         data_values = {}
         for i in range(delta_hours):
-            begin_time = begin.replace(hour=i)
+            #Fix for multiple date ranges, only modifies hour now.
+            #begin_time = begin.replace(hour=i)
+            begin_time = begin + datetime.timedelta(seconds=3600*i)
             end_time = begin_time+datetime.timedelta(seconds=3600)
             d = self._avg_for_response(data_type, begin_time, end_time)
             try:
@@ -120,7 +122,7 @@ class GoogleFit(object):
         query_base = 'insert into activity (user,period_earliest,activity_type,period,value) values '
         for i in data.keys():
             period_earliest = "'{}'".format(i)
-            activity_type = "'{}'".format(str(data_type).lo*wer().split('.')[1])
+            activity_type = "'{}'".format(str(data_type).lower().split('.')[1])
             period = "'hour'"
             value = "'{}'".format(data[i])
             user="'1'"
