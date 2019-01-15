@@ -2,8 +2,8 @@ from flask import Flask
 import os
 #delete from here
 import sys
-from py_google_fit.GoogleFit import GFitDataType
-from py_google_fit.GoogleFit import GoogleFit
+from GoogleFit import GFitDataType
+from GoogleFit import GoogleFit
 
 app = Flask(__name__)
 
