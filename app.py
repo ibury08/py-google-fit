@@ -13,6 +13,7 @@ def hello_world():
 	client_secret = os.environ['client_secret']
 	fit = GoogleFit(client_id, client_secret)
 	fit.authenticate()
+	#fit.authenticate should only store credentials on s3, no need to retrieve them.
 	return fit.average_today(GFitDataType.STEPS)
 
 if __name__ == '__main__':
