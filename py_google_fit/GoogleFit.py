@@ -47,22 +47,23 @@ class GoogleFit(object):
 
     def authenticate(self,
                      auth_scopes: List[str] = _AUTH_SCOPES,
-                     credentials_file: str = os.environ['s3_bucket']):
+                     credentials_file: str = '.google_fit_credentials'):
         """
         Authenticate and give access to google auth scopes. If no valid credentials file is found, a browser will open
         requesting access.
         :param auth_scopes: [optional] google auth scopes: https://developers.google.com/identity/protocols/googlescopes#fitnessv1
         :param credentials_file: [optional] path to credentials file
         """
-        #flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
-        #storage = Storage(credentials_file)
-        #credentials = storage.get()
-        s3 = boto3.resource('s3')
-
-        content_object = s3.Object(os.environ['s3_bucket'], os.environ['key'])
-        file_content = content_object.get()['Body'].read().decode('utf-8')
-        json_content = json.loads(file_content)
-        credentials=json_content
+        flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
+        storage = Storage(credentials_file)
+        credentials = storage.get()
+        
+        #s3 = boto3.resource('s3')
+        #content_object = s3.Object(os.environ['s3_bucket'], os.environ['key'])
+        #file_content = content_object.get()['Body'].read().decode('utf-8')
+        #json_content = json.loads(file_content)
+        #credentials=json_content
+        
         #s3 = boto3.client('s3',aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
         #response = s3.get_object(Bucket=os.environ['s3_bucket'], Key=os.environ['key'])
 
