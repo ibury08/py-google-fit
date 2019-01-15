@@ -7,7 +7,7 @@ import os
 import httplib2
 from apiclient.discovery import build
 from oauth2client import tools
-from oauth2client.client import OAuth2WebServerFlow
+from oauth2client.client import OAuth2WebServerFlow, GoogleCredentials
 from oauth2client.file import Storage
 from enum import Enum
 import json
@@ -54,9 +54,9 @@ class GoogleFit(object):
         :param auth_scopes: [optional] google auth scopes: https://developers.google.com/identity/protocols/googlescopes#fitnessv1
         :param credentials_file: [optional] path to credentials file
         """
-        flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
-        storage = Storage(credentials_file)
-        credentials = storage.get()
+        #flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
+        #storage = Storage(credentials_file)
+        #credentials = storage.get()
         
         #s3 = boto3.resource('s3')
         #content_object = s3.Object(os.environ['s3_bucket'], os.environ['key'])
@@ -66,7 +66,8 @@ class GoogleFit(object):
         
         #s3 = boto3.client('s3',aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
         #response = s3.get_object(Bucket=os.environ['s3_bucket'], Key=os.environ['key'])
-
+        credentials_json = os.environ['google_credentials']
+        credentials = GoogleCredentials.from_json(credentials_json)
         if credentials is None or credentials.invalid:
             credentials = tools.run_flow(flow, storage)
         http = httplib2.Http()
