@@ -1,3 +1,4 @@
+import boto3
 import datetime
 import time
 from typing import List
@@ -9,6 +10,7 @@ from oauth2client import tools
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.file import Storage
 from enum import Enum
+import json
 
 
 class GFitDataType(Enum):
@@ -38,6 +40,11 @@ class GoogleFit(object):
         self._client_secret = client_secret
         self._service = None
 
+
+
+
+
+
     def authenticate(self,
                      auth_scopes: List[str] = _AUTH_SCOPES,
                      credentials_file: str = os.environ['s3_bucket']):
@@ -47,9 +54,15 @@ class GoogleFit(object):
         :param auth_scopes: [optional] google auth scopes: https://developers.google.com/identity/protocols/googlescopes#fitnessv1
         :param credentials_file: [optional] path to credentials file
         """
-        flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
-        storage = Storage(credentials_file)
-        credentials = storage.get()
+        #flow = OAuth2WebServerFlow(self._client_id, self._client_secret, auth_scopes)
+        #storage = Storage(credentials_file)
+        #credentials = storage.get()
+
+        s3 = boto3.resource('s3')
+        content_object = s3.Object('wethrive-creds', os.environ['s3_bucket'])
+        file_content = content_object.get()['Body'].read().decode('utf-8')
+        json_content = json.loads(file_content)
+        credentials=json_content
 
         if credentials is None or credentials.invalid:
             credentials = tools.run_flow(flow, storage)
