@@ -40,7 +40,7 @@ class GoogleFit(object):
 
     def authenticate(self,
                      auth_scopes: List[str] = _AUTH_SCOPES,
-                     credentials_file: str = 's3://wethrive-creds/.google_fit_credentials'):
+                     credentials_file: str = os.environ['s3_bucket']):
         """
         Authenticate and give access to google auth scopes. If no valid credentials file is found, a browser will open
         requesting access.
